@@ -18,7 +18,10 @@ const { displayName, room } = Qs.parse(location.search, {
   ignoreQueryPrefix: true,
 });
 
-
+const audioPlay =()=>{
+  const audio = new Audio('http://commondatastorage.googleapis.com/codeskulptor-assets/Collision8-Bit.ogg');
+  audio.play();
+}
 const autoScroll =()=>{
   //new message element
   const $newMessage = $messages.lastElementChild;
@@ -57,7 +60,7 @@ socket.on("roomData", ({ room, users }) => {
 });
 
 socket.on("message", (message) => {
-  console.log(message);
+  audioPlay();
   const html = Mustache.render(messageTemplate, {
     displayName: message.displayName,
     message: message.text,
@@ -68,7 +71,7 @@ socket.on("message", (message) => {
 });
 
 socket.on("location-url", (locationUrl) => {
-  console.log(locationUrl);
+  audioPlay();
   const html = Mustache.render(locationTemplate, {
     displayName: message.displayName,
     url: locationUrl.locationText,
