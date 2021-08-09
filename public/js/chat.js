@@ -4,6 +4,7 @@ const socket = io();
 const $chatMessageForm = document.querySelector("#chat-message");
 const $chatMessageFormInput = document.querySelector("input");
 const $chatSendButton = document.querySelector("button");
+const $msgSendButton = document.querySelector("#sendButton");
 const $sendLocation = document.querySelector("#send-location");
 const $messages = document.querySelector("#messages");
 const $sidebar = document.querySelector("#sidebar");
@@ -121,15 +122,30 @@ socket.on("location-url", (locationUrl) => {
   autoScroll();
 });
 
-$chatMessageForm.addEventListener("submit", (e) => {
+$("#messageBox").emojioneArea({
+  pickerPosition: "top",
+  events: {
+    keyup: function (editor, event) {
+      if (event.code === "Enter") {
+        console.log("Fucker");
+       $('#sendButton').click();
+        
+      }
+    },
+  },
+});
+
+
+$msgSendButton.addEventListener("click", (e) => {
   e.preventDefault();
-  $chatSendButton.setAttribute("disabled", "disabled");
+  $msgSendButton.setAttribute("disabled", "disabled");
+  const msgBox = $("#messageBox").emojioneArea()
+  // const message = [0].value;
+  
+  socket.emit("message", msgBox[0].emojioneArea.getText(), (error) => {
+    $msgSendButton.removeAttribute("disabled", "disabled");
+    msgBox[0].emojioneArea.setText('')
 
-  const message = e.target.elements.message.value;
-
-  socket.emit("message", message, (error) => {
-    $chatSendButton.removeAttribute("disabled", "disabled");
-    $chatMessageFormInput.value = "";
     $chatMessageFormInput.focus();
     if (error) {
       return console.log(error);
@@ -137,6 +153,25 @@ $chatMessageForm.addEventListener("submit", (e) => {
     console.log("Message was delivered");
   });
 });
+
+// $chatMessageForm.addEventListener("submit", (e) => {
+//   e.preventDefault();
+//   $chatSendButton.setAttribute("disabled", "disabled");
+
+//   const message = e.target.elements.message.value;
+
+//   socket.emit("message", message, (error) => {
+//     $chatSendButton.removeAttribute("disabled", "disabled");
+//     $("div.emojionearea-editor").text("");
+//     // $chatMessageFormInput.value = "";
+
+//     $chatMessageFormInput.focus();
+//     if (error) {
+//       return console.log(error);
+//     }
+//     console.log("Message was delivered");
+//   });
+// });
 
 $sendLocation.addEventListener("click", () => {
   if (!navigator.geolocation) {
