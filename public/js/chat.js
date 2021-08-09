@@ -18,38 +18,75 @@ const { displayName, room } = Qs.parse(location.search, {
   ignoreQueryPrefix: true,
 });
 
-const audioPlay =()=>{
-  const audio = new Audio('http://commondatastorage.googleapis.com/codeskulptor-assets/Collision8-Bit.ogg');
+const audioPlay = () => {
+  const audio = new Audio(
+    "http://commondatastorage.googleapis.com/codeskulptor-assets/Collision8-Bit.ogg"
+  );
   audio.play();
-}
-const autoScroll =()=>{
+};
+
+const showNotification = (sender, msgBody) => {
+  const notification = new Notification(sender, {
+    body: msgBody,
+    icon: "https://cdn.iconscout.com/icon/premium/png-256-thumb/new-message-15-871930.png",
+  });
+
+  notification.onclick = (e) => {
+    window.focus();
+  };
+};
+
+const notificationAccessStatus = (sender, msgBody) => {
+  const locationUrl = window.location.href;
+  if (Notification.permission === "granted") {
+    document.addEventListener(
+      "visibilitychange",
+      function () {
+        if (document.hidden) {
+          showNotification(sender, msgBody);
+        }
+      },
+      false
+    );
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        document.addEventListener(
+          "visibilitychange",
+          function () {
+            if (document.hidden) {
+              showNotification(sender, msgBody);
+            }
+          },
+          false
+        );
+      }
+    });
+  }
+};
+const autoScroll = () => {
   //new message element
   const $newMessage = $messages.lastElementChild;
 
   //Height of new message
-  const newMessageStyles = getComputedStyle($newMessage)
+  const newMessageStyles = getComputedStyle($newMessage);
 
-  const newMessageMargin = parseInt(newMessageStyles.marginBottom)
-  const newMessageHeight = $newMessage.offsetHeight + newMessageMargin
+  const newMessageMargin = parseInt(newMessageStyles.marginBottom);
+  const newMessageHeight = $newMessage.offsetHeight + newMessageMargin;
 
   //Visible height
-  const visibleHeight = $messages.offsetHeight
+  const visibleHeight = $messages.offsetHeight;
 
   //Height of message container
-  const containerHeight =$messages.scrollHeight
+  const containerHeight = $messages.scrollHeight;
 
   //How far have I scrolled?
-  const scrollOffset = $messages.scrollTop + visibleHeight
+  const scrollOffset = $messages.scrollTop + visibleHeight;
 
   // if(containerHeight- newMessageHeight <= scrollOffset){
-    $messages.scrollTop = $messages.scrollHeight
+  $messages.scrollTop = $messages.scrollHeight;
   // }
-
-}
-
-
-
-
+};
 
 socket.on("roomData", ({ room, users }) => {
   const html = Mustache.render(sideBarTemplate, {
@@ -61,24 +98,27 @@ socket.on("roomData", ({ room, users }) => {
 
 socket.on("message", (message) => {
   audioPlay();
+
+  // notificationAccessStatus(message.displayName, message.text);
   const html = Mustache.render(messageTemplate, {
     displayName: message.displayName,
     message: message.text,
     createdAt: moment(message.createdAt).format("h:mm a"),
   });
   $messages.insertAdjacentHTML("beforeend", html);
-  autoScroll()
+  autoScroll();
 });
 
 socket.on("location-url", (locationUrl) => {
   audioPlay();
+  // notificationAccessStatus(locationUrl.displayName, locationUrl.text);
   const html = Mustache.render(locationTemplate, {
-    displayName: message.displayName,
+    displayName: locationUrl.displayName,
     url: locationUrl.locationText,
     createdAt: moment(locationUrl.createdAt).format("h:mm a"),
   });
   $messages.insertAdjacentHTML("beforeend", html);
-  autoScroll()
+  autoScroll();
 });
 
 $chatMessageForm.addEventListener("submit", (e) => {
@@ -113,7 +153,6 @@ $sendLocation.addEventListener("click", () => {
       console.log("Location was shared successfully");
       $sendLocation.removeAttribute("disabled", "disabled");
     });
-  
   });
 });
 
